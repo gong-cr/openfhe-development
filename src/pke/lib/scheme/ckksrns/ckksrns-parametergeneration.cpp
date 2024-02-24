@@ -76,6 +76,8 @@ bool ParameterGenerationCKKSRNS::ParamsGenCKKSRNS(std::shared_ptr<CryptoParamete
     uint32_t auxBits       = AUXMODSIZE;
     uint32_t n             = cyclOrder / 2;
     uint32_t qBound        = firstModSize + (numPrimes - 1) * scalingModSize + extraModSize;
+    std::cout << "qBound = " << qBound << std::endl;
+    std::cout << "auxBits = " << auxBits << std::endl;
     // Estimate ciphertext modulus Q bound (in case of GHS/HYBRID P*Q)
     if (ksTech == HYBRID) {
         qBound += ceil(ceil(static_cast<double>(qBound) / numPartQ) / auxBits) * auxBits;
@@ -204,7 +206,15 @@ bool ParameterGenerationCKKSRNS::ParamsGenCKKSRNS(std::shared_ptr<CryptoParamete
         moduliQ[0] = LastPrime<NativeInteger>(firstModSize, cyclOrder);
     }
     rootsQ[0] = RootOfUnity(cyclOrder, moduliQ[0]);
-
+    
+    std::cout << "number of Q = " << moduliQ.size() << std::endl;
+    double logQ_acc = 0;
+    for (size_t i = 0; i < moduliQ.size(); i++) {
+        std::cout << "moduliQ[" << i << "]=" << moduliQ[i] << " logq[" << i << "]=" 
+		<< std::log2(moduliQ[i].ConvertToDouble()) << std::endl; 
+        logQ_acc += std::log2(moduliQ[i].ConvertToDouble());
+    }
+    std::cout << "logQ = " << logQ_acc << std::endl;
     if (scalTech == FLEXIBLEAUTOEXT) {
         if (extraModSize == dcrtBits || extraModSize == firstModSize) {
             moduliQ[numPrimes] = PreviousPrime<NativeInteger>(moduliQ[0], cyclOrder);

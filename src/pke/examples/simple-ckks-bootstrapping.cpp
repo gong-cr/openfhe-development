@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 }
 
 void SimpleBootstrapExample() {
-    CCParams<CryptoContextCKKSRNS> parameters;
+    CCParams<CryptoContextCKKSRNS> parameters;//
     // A. Specify main parameters
     /*  A1) Secret key distribution
     * The secret key distribution for CKKS should either be SPARSE_TERNARY or UNIFORM_TERNARY.
@@ -56,8 +56,8 @@ void SimpleBootstrapExample() {
     * but in this example, we use UNIFORM_TERNARY because this is included in the homomorphic
     * encryption standard.
     */
-    SecretKeyDist secretKeyDist = UNIFORM_TERNARY;
-    parameters.SetSecretKeyDist(secretKeyDist);
+    SecretKeyDist secretKeyDist = UNIFORM_TERNARY;//
+    parameters.SetSecretKeyDist(secretKeyDist);//
 
     /*  A2) Desired security level based on FHE standards.
     * In this example, we use the "NotSet" option, so the example can run more quickly with
@@ -68,8 +68,9 @@ void SimpleBootstrapExample() {
     * or 256-bit security, respectively. If you choose one of these as your security level,
     * you do not need to set the ring dimension.
     */
-    parameters.SetSecurityLevel(HEStd_NotSet);
-    parameters.SetRingDim(1 << 12);
+    parameters.SetSecurityLevel(HEStd_NotSet);//
+    parameters.SetRingDim(1 << 15); //COLUMN 1,2,3,4//
+    // parameters.SetRingDim(1 << 16); //COLUMN 5,6
 
     /*  A3) Scaling parameters.
     * By default, we set the modulus sizes and rescaling technique to the following values
@@ -81,14 +82,16 @@ void SimpleBootstrapExample() {
     usint dcrtBits               = 78;
     usint firstMod               = 89;
 #else
-    ScalingTechnique rescaleTech = FLEXIBLEAUTO;
-    usint dcrtBits               = 59;
-    usint firstMod               = 60;
+    ScalingTechnique rescaleTech = FLEXIBLEAUTO;//
+    usint dcrtBits               = 59;//
+    usint firstMod               = 60; //COLUMN 1,2,3//
+    // usint firstMod               = 61; //COLUMN 4,6
+    // usint firstMod               = 67; //COLUMN 5
 #endif
 
-    parameters.SetScalingModSize(dcrtBits);
-    parameters.SetScalingTechnique(rescaleTech);
-    parameters.SetFirstModSize(firstMod);
+    parameters.SetScalingModSize(dcrtBits);//
+    parameters.SetScalingTechnique(rescaleTech);//
+    parameters.SetFirstModSize(firstMod);//
 
     /*  A4) Multiplicative depth.
     * The goal of bootstrapping is to increase the number of available levels we have, or in other words,

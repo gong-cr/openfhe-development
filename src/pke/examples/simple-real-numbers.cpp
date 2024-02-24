@@ -48,9 +48,9 @@ double CalculateApproximationError(const std::vector<std::complex<double>>& resu
     // using the average
     double accError = 0;
     for (size_t i = 0; i < result.size(); ++i) {
-        double accError += std::abs(result[i].real() - expectedResult[i].real());
+        accError += std::abs(result[i].real() - expectedResult[i].real());
     }
-    avrg = accError / result.size();  // get the average
+    double avrg = accError / result.size();  // get the average
     return std::abs(std::log2(avrg));
 }
 
@@ -95,7 +95,7 @@ int main() {
    */
    
     ScalingTechnique rescaleTech = FLEXIBLEAUTO;
-    usint scaleModSize               = 59;
+    usint scaleModSize               = 50;
     usint firstMod               = 60; //COLUMN 1,2,3
     // usint firstMod               = 61; //COLUMN 4,6
     // usint firstMod               = 67; //COLUMN 5
@@ -119,8 +119,11 @@ int main() {
     parameters.SetScalingModSize(scaleModSize);
     parameters.SetScalingTechnique(rescaleTech);
     parameters.SetFirstModSize(firstMod);
-    CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
+    
+    usint depth = 5;
+    parameters.SetMultiplicativeDepth(depth);
 
+    CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
     // Enable the features that you wish to use
     cc->Enable(PKE);
     cc->Enable(KEYSWITCH);
@@ -183,6 +186,7 @@ int main() {
     // Inputs (adopted from https://github.com/microsoft/SEAL/blob/main/native/examples/5_ckks_basics.cpp)
     // Copyright (c) Microsoft Corporation. All rights reserved.
     // Licensed under the MIT license
+
     double step_size = 1.0/(static_cast<double>(batchSize) - 1);
     std::vector<double> x1;
     x1.reserve(batchSize);
@@ -192,7 +196,7 @@ int main() {
         x1.push_back(curr_point);
         curr_point += step_size;
     }
-   
+    // std::vector<double> x1 = {0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0, 5.0};
     // Encoding as plaintexts
     Plaintext ptxt1 = cc->MakeCKKSPackedPlaintext(x1);
 
@@ -200,11 +204,37 @@ int main() {
 
     // Encrypt the encoded vectors
     auto c1 = cc->Encrypt(keys.publicKey, ptxt1);
-
+    auto c0 = cc->Encrypt(keys.publicKey, ptxt1);
     // Step 4: Evaluation
 
     // Homomorphic multiplication
-    auto cMul = cc->EvalMult(c1, c1);
+    uint32_t mul_depth = depth;
+    std::cout<<"c1 level=" << c1->GetLevel() << std::endl;
+
+    for (uint32_t i = 0; i < mul_depth; i++){
+      // c1 = cc->EvalMult(c1, c1);
+      // std::cout<<"co"<<c0;
+      c1 = cc->EvalMult(c1, c0);
+      std::cout<<"i= "<<i<<" c1 level=" << c1->GetLevel() << std::endl;
+      std::cout<<"i= "<<i<<" after rescaling c1 level=" << c1->GetLevel() << std::endl;
+    }
+    
+    std::vector<double> expectedResult;
+    std::cout << "cleartext results = ";
+    for (double entry : x1) {
+        double expectedEntry = std::pow(entry, mul_depth+1);//std::pow(2, mul_depth)
+        expectedResult.push_back(expectedEntry);
+        std::cout << expectedEntry << ' ';
+    }
+    
+    std::cout << std::endl;
+    Plaintext ptxt_expResult = cc->MakeCKKSPackedPlaintext(expectedResult);
+    // std::cout<<"c1 level=" << c1->GetLevel() << std::endl;
+    // auto cMul = cc->EvalMult(c1, c1);
+    // std::cout<<"cMul level=" << cMul->GetLevel() << std::endl;
+    // auto cMul2 = cc->EvalMult(cMul, cMul);
+    // std::cout<<"cMul2 level=" << cMul2->GetLevel() << std::endl;
+    
 
     // Step 5: Decryption and output
     Plaintext result;
@@ -214,18 +244,21 @@ int main() {
     std::cout.precision(50);
 
     std::cout << std::endl << "Results of homomorphic computations: " << std::endl;
-
+    std::cout<<__LINE__<<std::endl;
     cc->Decrypt(keys.secretKey, c1, &result);
+    std::cout<<__LINE__<<std::endl;
     result->SetLength(batchSize);
-    std::cout << "x1 = " << result;
+    std::cout<<__LINE__<<std::endl;
+    std::cout << "computed results = " << result;
     std::cout << "Estimated precision in bits: " << result->GetLogPrecision() << std::endl;
 
-    // Decrypt the result of multiplication
-    cc->Decrypt(keys.secretKey, cMul, &result);
-    result->SetLength(batchSize);
-    std::cout << "x1 * x2 = " << result << std::endl;
+    // // Decrypt the result of multiplication
+    // cc->Decrypt(keys.secretKey, c1, &result);
+    // result->SetLength(batchSize);
+    // std::cout << "actual result " << result << std::endl;
 
-    double precision = CalculateApproximationError(result, ptxt->GetCKKSPackedValue());
+    auto actualResult = result->GetCKKSPackedValue();
+    double precision = CalculateApproximationError(actualResult, ptxt_expResult->GetCKKSPackedValue());
     std::cout << "Real precision in bits: " << precision << std::endl;
     return 0;
 }
