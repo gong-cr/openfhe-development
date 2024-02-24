@@ -38,30 +38,40 @@
 #include "openfhe.h"
 
 using namespace lbcrypto;
+// CalculateApproximationError() calculates the precision number (or approximation error).
+// The higher the precision, the less the error.
+double CalculateApproximationError(const std::vector<std::complex<double>>& result,
+                                    const std::vector<std::complex<double>>& expectedResult) {
+    if (result.size() != expectedResult.size())
+        OPENFHE_THROW(config_error, "Cannot compare vectors with different numbers of elements");
+
+    // using the average
+    double accError = 0;
+    for (size_t i = 0; i < result.size(); ++i) {
+        double accError += std::abs(result[i].real() - expectedResult[i].real());
+    }
+    avrg = accError / result.size();  // get the average
+    return std::abs(std::log2(avrg));
+}
+
 
 int main() {
     // Step 1: Setup CryptoContext
 
     // A. Specify main parameters
-    /* A1) Multiplicative depth:
-   * The CKKS scheme we setup here will work for any computation
-   * that has a multiplicative depth equal to 'multDepth'.
-   * This is the maximum possible depth of a given multiplication,
-   * but not the total number of multiplications supported by the
-   * scheme.
-   *
-   * For example, computation f(x, y) = x^2 + x*y + y^2 + x + y has
-   * a multiplicative depth of 1, but requires a total of 3 multiplications.
-   * On the other hand, computation g(x_i) = x1*x2*x3*x4 can be implemented
-   * either as a computation of multiplicative depth 3 as
-   * g(x_i) = ((x1*x2)*x3)*x4, or as a computation of multiplicative depth 2
-   * as g(x_i) = (x1*x2)*(x3*x4).
-   *
-   * For performance reasons, it's generally preferable to perform operations
-   * in the shorted multiplicative depth possible.
-   */
-    uint32_t multDepth = 1;
+   CCParams<CryptoContextCKKSRNS> parameters;
+   /*  A1) Secret key distribution
+    * The secret key distribution for CKKS should either be SPARSE_TERNARY or UNIFORM_TERNARY.
+    * The SPARSE_TERNARY distribution was used in the original CKKS paper,
+    * but in this example, we use UNIFORM_TERNARY because this is included in the homomorphic
+    * encryption standard.
+    */    
+   SecretKeyDist secretKeyDist = UNIFORM_TERNARY;
+   parameters.SetSecretKeyDist(secretKeyDist);
 
+   parameters.SetSecurityLevel(HEStd_NotSet);
+   parameters.SetRingDim(1 << 15); //COLUMN 1,2,3,4
+    // parameters.SetRingDim(1 << 16); //COLUMN 5,6   
     /* A2) Bit-length of scaling factor.
    * CKKS works for real numbers, but these numbers are encoded as integers.
    * For instance, real number m=0.01 is encoded as m'=round(m*D), where D is
@@ -83,21 +93,13 @@ int main() {
    * scaling factor should be large enough to both accommodate this noise and
    * support results that match the desired accuracy.
    */
-    uint32_t scaleModSize = 50;
+   
+    ScalingTechnique rescaleTech = FLEXIBLEAUTO;
+    usint scaleModSize               = 59;
+    usint firstMod               = 60; //COLUMN 1,2,3
+    // usint firstMod               = 61; //COLUMN 4,6
+    // usint firstMod               = 67; //COLUMN 5
 
-    /* A3) Number of plaintext slots used in the ciphertext.
-   * CKKS packs multiple plaintext values in each ciphertext.
-   * The maximum number of slots depends on a security parameter called ring
-   * dimension. In this instance, we don't specify the ring dimension directly,
-   * but let the library choose it for us, based on the security level we
-   * choose, the multiplicative depth we want to support, and the scaling factor
-   * size.
-   *
-   * Please use method GetRingDimension() to find out the exact ring dimension
-   * being used for these parameters. Give ring dimension N, the maximum batch
-   * size is N/2, because of the way CKKS works.
-   */
-    uint32_t batchSize = 8;
 
     /* A4) Desired security level based on FHE standards.
    * This parameter can take four values. Three of the possible values
@@ -114,19 +116,29 @@ int main() {
    * PARAMETERS" in  the following reference for more details:
    * http://homomorphicencryption.org/wp-content/uploads/2018/11/HomomorphicEncryptionStandardv1.1.pdf
    */
-    CCParams<CryptoContextCKKSRNS> parameters;
-    parameters.SetMultiplicativeDepth(multDepth);
     parameters.SetScalingModSize(scaleModSize);
-    parameters.SetBatchSize(batchSize);
-
+    parameters.SetScalingTechnique(rescaleTech);
+    parameters.SetFirstModSize(firstMod);
     CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
 
     // Enable the features that you wish to use
     cc->Enable(PKE);
     cc->Enable(KEYSWITCH);
     cc->Enable(LEVELEDSHE);
-    std::cout << "CKKS scheme is using ring dimension " << cc->GetRingDimension() << std::endl << std::endl;
-
+    cc->Enable(ADVANCEDSHE);
+    cc->Enable(FHE);
+   /*A3) Number of plaintext slots used in the ciphertext.
+   * CKKS packs multiple plaintext values in each ciphertext.
+   * The maximum number of slots depends on a security parameter called ring
+   * dimension. */
+  /*
+   * Please use method GetRingDimension() to find out the exact ring dimension
+   * being used for these parameters. Give ring dimension N, the maximum batch
+   * size is N/2, because of the way CKKS works.
+   */
+    usint ringDim = cc->GetRingDimension();
+    std::cout << "CKKS scheme is using ring dimension " << ringDim << std::endl << std::endl;
+    uint32_t batchSize = ringDim/2;
     // B. Step 2: Key Generation
     /* B1) Generate encryption keys.
    * These are used for encryption/decryption, as well as in generating
@@ -164,49 +176,42 @@ int main() {
    * in the output of this demo, since CKKS is approximate, zeros are not exact
    * - they're just very small numbers.
    */
-    cc->EvalRotateKeyGen(keys.secretKey, {1, -2});
+    // cc->EvalRotateKeyGen(keys.secretKey, {1, -2});
 
     // Step 3: Encoding and encryption of inputs
 
-    // Inputs
-    std::vector<double> x1 = {0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0, 5.0};
-    std::vector<double> x2 = {5.0, 4.0, 3.0, 2.0, 1.0, 0.75, 0.5, 0.25};
-
+    // Inputs (adopted from https://github.com/microsoft/SEAL/blob/main/native/examples/5_ckks_basics.cpp)
+    // Copyright (c) Microsoft Corporation. All rights reserved.
+    // Licensed under the MIT license
+    double step_size = 1.0/(static_cast<double>(batchSize) - 1);
+    std::vector<double> x1;
+    x1.reserve(batchSize);
+    double curr_point = 0;
+    for (size_t i = 0; i < batchSize; i++)
+    {
+        x1.push_back(curr_point);
+        curr_point += step_size;
+    }
+   
     // Encoding as plaintexts
     Plaintext ptxt1 = cc->MakeCKKSPackedPlaintext(x1);
-    Plaintext ptxt2 = cc->MakeCKKSPackedPlaintext(x2);
 
     std::cout << "Input x1: " << ptxt1 << std::endl;
-    std::cout << "Input x2: " << ptxt2 << std::endl;
 
     // Encrypt the encoded vectors
     auto c1 = cc->Encrypt(keys.publicKey, ptxt1);
-    auto c2 = cc->Encrypt(keys.publicKey, ptxt2);
 
     // Step 4: Evaluation
 
-    // Homomorphic addition
-    auto cAdd = cc->EvalAdd(c1, c2);
-
-    // Homomorphic subtraction
-    auto cSub = cc->EvalSub(c1, c2);
-
-    // Homomorphic scalar multiplication
-    auto cScalar = cc->EvalMult(c1, 4.0);
-
     // Homomorphic multiplication
-    auto cMul = cc->EvalMult(c1, c2);
-
-    // Homomorphic rotations
-    auto cRot1 = cc->EvalRotate(c1, 1);
-    auto cRot2 = cc->EvalRotate(c1, -2);
+    auto cMul = cc->EvalMult(c1, c1);
 
     // Step 5: Decryption and output
     Plaintext result;
     // We set the cout precision to 8 decimal digits for a nicer output.
     // If you want to see the error/noise introduced by CKKS, bump it up
     // to 15 and it should become visible.
-    std::cout.precision(8);
+    std::cout.precision(50);
 
     std::cout << std::endl << "Results of homomorphic computations: " << std::endl;
 
@@ -215,37 +220,12 @@ int main() {
     std::cout << "x1 = " << result;
     std::cout << "Estimated precision in bits: " << result->GetLogPrecision() << std::endl;
 
-    // Decrypt the result of addition
-    cc->Decrypt(keys.secretKey, cAdd, &result);
-    result->SetLength(batchSize);
-    std::cout << "x1 + x2 = " << result;
-    std::cout << "Estimated precision in bits: " << result->GetLogPrecision() << std::endl;
-
-    // Decrypt the result of subtraction
-    cc->Decrypt(keys.secretKey, cSub, &result);
-    result->SetLength(batchSize);
-    std::cout << "x1 - x2 = " << result << std::endl;
-
-    // Decrypt the result of scalar multiplication
-    cc->Decrypt(keys.secretKey, cScalar, &result);
-    result->SetLength(batchSize);
-    std::cout << "4 * x1 = " << result << std::endl;
-
     // Decrypt the result of multiplication
     cc->Decrypt(keys.secretKey, cMul, &result);
     result->SetLength(batchSize);
     std::cout << "x1 * x2 = " << result << std::endl;
 
-    // Decrypt the result of rotations
-
-    cc->Decrypt(keys.secretKey, cRot1, &result);
-    result->SetLength(batchSize);
-    std::cout << std::endl << "In rotations, very small outputs (~10^-10 here) correspond to 0's:" << std::endl;
-    std::cout << "x1 rotate by 1 = " << result << std::endl;
-
-    cc->Decrypt(keys.secretKey, cRot2, &result);
-    result->SetLength(batchSize);
-    std::cout << "x1 rotate by -2 = " << result << std::endl;
-
+    double precision = CalculateApproximationError(result, ptxt->GetCKKSPackedValue());
+    std::cout << "Real precision in bits: " << precision << std::endl;
     return 0;
 }
