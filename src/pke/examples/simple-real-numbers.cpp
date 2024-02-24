@@ -200,7 +200,7 @@ int main() {
     // Encoding as plaintexts
     Plaintext ptxt1 = cc->MakeCKKSPackedPlaintext(x1);
 
-    std::cout << "Input x1: " << ptxt1 << std::endl;
+    // std::cout << "Input x1: " << ptxt1 << std::endl;
 
     // Encrypt the encoded vectors
     auto c1 = cc->Encrypt(keys.publicKey, ptxt1);
@@ -224,7 +224,7 @@ int main() {
     for (double entry : x1) {
         double expectedEntry = std::pow(entry, mul_depth+1);//std::pow(2, mul_depth)
         expectedResult.push_back(expectedEntry);
-        std::cout << expectedEntry << ' ';
+        // std::cout << expectedEntry << ' ';
     }
     
     std::cout << std::endl;
@@ -249,7 +249,7 @@ int main() {
     std::cout<<__LINE__<<std::endl;
     result->SetLength(batchSize);
     std::cout<<__LINE__<<std::endl;
-    std::cout << "computed results = " << result;
+    // std::cout << "computed results = " << result;
     std::cout << "Estimated precision in bits: " << result->GetLogPrecision() << std::endl;
 
     // // Decrypt the result of multiplication

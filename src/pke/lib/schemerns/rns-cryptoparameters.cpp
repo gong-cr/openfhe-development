@@ -132,7 +132,7 @@ void CryptoParametersRNS::PrecomputeCRTTables(KeySwitchTechnique ksTech, Scaling
         }
         // Select number of primes in auxiliary CRT basis
         sizeP              = ceil(static_cast<double>(maxBits) / auxBits);
-        std::cout << "sizeP" <<sizeP << std::endl;
+        std::cout << "sizeP = " <<sizeP << std::endl;
         uint64_t primeStep = FindAuxPrimeStep();
 
         // Choose special primes in auxiliary basis and compute their roots
