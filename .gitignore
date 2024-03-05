@@ -11,7 +11,7 @@ docs/sphinx
 _build/
 api/
 doxyoutput/
-
+install/
 
 .ipynb_checkpoints
 
