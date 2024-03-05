@@ -511,6 +511,7 @@ Ciphertext<DCRTPoly> FHECKKSRNS::EvalBootstrap(ConstCiphertext<DCRTPoly> ciphert
     else {
         coefficients = g_coefficientsUniform;
         k            = K_UNIFORM;
+        std::cout << "k = " << k << std::endl;
     }
 
     double constantEvalMult = pre * (1.0 / (k * N));
@@ -2069,13 +2070,17 @@ uint32_t FHECKKSRNS::GetBootstrapDepth(uint32_t approxModDepth, const std::vecto
     if (secretKeyDist == UNIFORM_TERNARY) {
         approxModDepth += R_UNIFORM - 1;
     }
-
+    std::cout << "Level consumption for SlotsToCoeffs: " <<levelBudget[0]<< std::endl;
+    std::cout << "Level consumption for EvalMod: " <<approxModDepth<< std::endl; 
+    std::cout << "Level consumption for CoeffsToSlots: " <<levelBudget[1]<< std::endl;
     return approxModDepth + levelBudget[0] + levelBudget[1];
 }
 
 uint32_t FHECKKSRNS::GetBootstrapDepth(const std::vector<uint32_t>& levelBudget, SecretKeyDist secretKeyDist) {
     uint32_t approxModDepth = GetModDepthInternal(secretKeyDist);
-
+    std::cout << "Level consumption for SlotsToCoeffs: " <<levelBudget[0]<< std::endl;
+    std::cout << "Level consumption for EvalMod: " <<approxModDepth<< std::endl; 
+    std::cout << "Level consumption for CoeffsToSlots: " <<levelBudget[1]<< std::endl;
     return approxModDepth + levelBudget[0] + levelBudget[1];
 }
 //------------------------------------------------------------------------------

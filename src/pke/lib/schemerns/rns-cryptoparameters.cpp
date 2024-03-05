@@ -132,6 +132,8 @@ void CryptoParametersRNS::PrecomputeCRTTables(KeySwitchTechnique ksTech, Scaling
         }
         // Select number of primes in auxiliary CRT basis
         sizeP              = ceil(static_cast<double>(maxBits) / auxBits);
+        std::cout << "sizeP = " <<sizeP << std::endl;
+        // std::cout << "logP = sizeP * auxBit" << std::endl;
         uint64_t primeStep = FindAuxPrimeStep();
 
         // Choose special primes in auxiliary basis and compute their roots
@@ -159,6 +161,14 @@ void CryptoParametersRNS::PrecomputeCRTTables(KeySwitchTechnique ksTech, Scaling
             modulusP *= moduliP[i];
             pPrev = moduliP[i];
         }
+
+        double logP_acc = 0;
+        for (usint i = 0; i < sizeP; i++) {
+            std::cout << "moduliP[" << i << "]=" << moduliP[i] << " logP[" << i << "]=" 
+            << std::log2(moduliP[i].ConvertToDouble()) << std::endl; 
+            logP_acc += std::log2(moduliP[i].ConvertToDouble());
+        }
+        std::cout << "logP = " << logP_acc << std::endl;
 
         // Store the created moduli and roots in m_paramsP
         m_paramsP = std::make_shared<ILDCRTParams<BigInteger>>(2 * n, moduliP, rootsP);
