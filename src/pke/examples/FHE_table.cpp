@@ -63,7 +63,6 @@ int main(int argc, char* argv[]) {
     usint firstMod    = 60; 
     std::vector<uint32_t> levelBudget = {2, 2};
     uint32_t levelsAvailableAfterBootstrap = 5;
-    uint32_t approxModDepth = 8;
     SimpleBootstrapExample(ringDim, dcrtBits, firstMod, levelBudget, levelsAvailableAfterBootstrap);
 
     //SetIII
