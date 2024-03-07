@@ -216,7 +216,8 @@ bool ParameterGenerationCKKSRNS::ParamsGenCKKSRNS(std::shared_ptr<CryptoParamete
         Q_acc = Q_acc * moduliQ[i];
     }
     std::cout << "Q = " << Q_acc << std::endl;
-    std::cout << "logQ = " << logQ_acc << std::endl;
+    std::cout << "logQ = " <<logQ_acc << std::endl;
+    std::cout << "logQ = " << std::log2(Q_acc) << std::endl;
 
     if (scalTech == FLEXIBLEAUTOEXT) {
         // no need for extra checking as extraModSize is automatically chosen by the library

@@ -30,7 +30,7 @@
 //==================================================================================
 
 /*
-  Simple examples for CKKS
+  Simple examples for CKKS without Bootstrapping, modified from simple-real-numbers.cpp provided by OpenFHE.
  */
 
 #define PROFILE
@@ -38,7 +38,7 @@
 #include "openfhe.h"
 
 using namespace lbcrypto;
-void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod);
+void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod);
 
 // CalculateApproximationError() calculates the precision number (or approximation error).
 // The higher the precision, the less the error.
@@ -59,19 +59,19 @@ double CalculateApproximationError(const std::vector<std::complex<double>>& resu
 int main(int argc, char* argv[]) {
     //SetII
     std::cout << "--------------------Set II--------------------" << std::endl;
-    uint32_t ringDim  = 1 << 16;
+    uint32_t ringDim  = 1 << 15;
     usint dcrtBits    = 55;
     usint firstMod    = 60; 
-    SimpleBootstrapExample(ringDim, dcrtBits, firstMod);
+    SHEExample(ringDim, dcrtBits, firstMod);
 
     //SetIII
     std::cout << "--------------------Set III--------------------" << std::endl;
     ringDim  = 1 << 17;
     dcrtBits    = 55;
     firstMod    = 60; 
-    SimpleBootstrapExample(ringDim, dcrtBits, firstMod);
+    // SimpleBootstrapExample(ringDim, dcrtBits, firstMod);
 }
-void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
+void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
     // Step 1: Setup CryptoContext
 
     // A. Specify main parameters
@@ -111,11 +111,6 @@ void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
    */
    
     ScalingTechnique rescaleTech = FLEXIBLEAUTO;
-    // usint scaleModSize               = 50;
-    // usint firstMod               = 60; //COLUMN 1,2,3
-    // usint firstMod               = 61; //COLUMN 4,6
-    // usint firstMod               = 67; //COLUMN 5
-
 
     /* A4) Desired security level based on FHE standards.
    * This parameter can take four values. Three of the possible values
@@ -136,7 +131,7 @@ void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
     parameters.SetScalingTechnique(rescaleTech);
     parameters.SetFirstModSize(firstMod);
     
-    usint depth = 5;
+    usint depth = 3;
     parameters.SetMultiplicativeDepth(depth);
 
     CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
@@ -155,9 +150,10 @@ void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
    * being used for these parameters. Give ring dimension N, the maximum batch
    * size is N/2, because of the way CKKS works.
    */
-    usint ringDim = cc->GetRingDimension();
+    // usint ringDim = cc->GetRingDimension();
     std::cout << "CKKS scheme is using ring dimension " << ringDim << std::endl << std::endl;
-    uint32_t batchSize = ringDim/2;
+    // uint32_t batchSize = ringDim/2;
+    uint32_t batchSize = 8;
     // B. Step 2: Key Generation
     /* B1) Generate encryption keys.
    * These are used for encryption/decryption, as well as in generating
@@ -215,7 +211,6 @@ void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
     // std::vector<double> x1 = {0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0, 5.0};
     // Encoding as plaintexts
     Plaintext ptxt1 = cc->MakeCKKSPackedPlaintext(x1);
-
     // std::cout << "Input x1: " << ptxt1 << std::endl;
 
     // Encrypt the encoded vectors
@@ -225,22 +220,22 @@ void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
 
     // Homomorphic multiplication
     uint32_t mul_depth = depth;
-    std::cout<<"c1 level=" << c1->GetLevel() << std::endl;
+    // std::cout<<"c1 level=" << c1->GetLevel() << std::endl;
 
     for (uint32_t i = 0; i < mul_depth; i++){
-      // c1 = cc->EvalMult(c1, c1);
+    //   c1 = cc->EvalMult(c1, c1);//square f(x)*f(x)
       // std::cout<<"co"<<c0;
-      c1 = cc->EvalMult(c1, c0);
-      std::cout<<"i= "<<i<<" c1 level=" << c1->GetLevel() << std::endl;
-      std::cout<<"i= "<<i<<" after rescaling c1 level=" << c1->GetLevel() << std::endl;
+      c1 = cc->EvalMult(c1, c0);//mul: f(x)*x
     }
     
     std::vector<double> expectedResult;
     std::cout << "cleartext results = ";
     for (double entry : x1) {
-        double expectedEntry = std::pow(entry, mul_depth+1);//std::pow(2, mul_depth)
+        double expectedEntry = std::pow(entry, mul_depth+1);//mul: f(x)*x
+        // double expectedEntry = std::pow(entry, std::pow(2, mul_depth)); //square f(x)*f(x)
         expectedResult.push_back(expectedEntry);
-        // std::cout << expectedEntry << ' ';
+
+        std::cout << expectedEntry << ' ';
     }
     
     std::cout << std::endl;
@@ -260,21 +255,13 @@ void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
     std::cout.precision(50);
 
     std::cout << std::endl << "Results of homomorphic computations: " << std::endl;
-    std::cout<<__LINE__<<std::endl;
     cc->Decrypt(keys.secretKey, c1, &result);
-    std::cout<<__LINE__<<std::endl;
     result->SetLength(batchSize);
-    std::cout<<__LINE__<<std::endl;
-    // std::cout << "computed results = " << result;
+    
     std::cout << "Estimated precision in bits: " << result->GetLogPrecision() << std::endl;
-
-    // // Decrypt the result of multiplication
-    // cc->Decrypt(keys.secretKey, c1, &result);
-    // result->SetLength(batchSize);
-    // std::cout << "actual result " << result << std::endl;
-
     auto actualResult = result->GetCKKSPackedValue();
+    // std::cout << "Actual results = " << actualResult << std::endl;
     double precision = CalculateApproximationError(actualResult, ptxt_expResult->GetCKKSPackedValue());
     std::cout << "Real precision in bits: " << precision << std::endl;
-    return 0;
+    
 }
