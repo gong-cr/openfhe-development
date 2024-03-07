@@ -38,7 +38,7 @@
 #include "openfhe.h"
 
 using namespace lbcrypto;
-void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod);
+void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod, usint depth);
 
 // CalculateApproximationError() calculates the precision number (or approximation error).
 // The higher the precision, the less the error.
@@ -62,16 +62,18 @@ int main(int argc, char* argv[]) {
     uint32_t ringDim  = 1 << 15;
     usint dcrtBits    = 55;
     usint firstMod    = 60; 
-    SHEExample(ringDim, dcrtBits, firstMod);
+    usint depth = 3;
+    SHEExample(ringDim, dcrtBits, firstMod, depth);
 
     //SetIII
     std::cout << "--------------------Set III--------------------" << std::endl;
     ringDim  = 1 << 17;
     dcrtBits    = 55;
     firstMod    = 60; 
-    // SimpleBootstrapExample(ringDim, dcrtBits, firstMod);
+    depth = 3;
+    // SimpleBootstrapExample(ringDim, dcrtBits, firstMod, depth);
 }
-void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
+void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod, usint depth){
     // Step 1: Setup CryptoContext
 
     // A. Specify main parameters
@@ -131,7 +133,6 @@ void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
     parameters.SetScalingTechnique(rescaleTech);
     parameters.SetFirstModSize(firstMod);
     
-    usint depth = 3;
     parameters.SetMultiplicativeDepth(depth);
 
     CryptoContext<DCRTPoly> cc = GenCryptoContext(parameters);
@@ -219,10 +220,9 @@ void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
     // Step 4: Evaluation
 
     // Homomorphic multiplication
-    uint32_t mul_depth = depth;
     // std::cout<<"c1 level=" << c1->GetLevel() << std::endl;
 
-    for (uint32_t i = 0; i < mul_depth; i++){
+    for (uint32_t i = 0; i < depth; i++){
     //   c1 = cc->EvalMult(c1, c1);//square f(x)*f(x)
       // std::cout<<"co"<<c0;
       c1 = cc->EvalMult(c1, c0);//mul: f(x)*x
@@ -231,8 +231,8 @@ void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
     std::vector<double> expectedResult;
     std::cout << "cleartext results = ";
     for (double entry : x1) {
-        double expectedEntry = std::pow(entry, mul_depth+1);//mul: f(x)*x
-        // double expectedEntry = std::pow(entry, std::pow(2, mul_depth)); //square f(x)*f(x)
+        double expectedEntry = std::pow(entry, depth+1);//mul: f(x)*x
+        // double expectedEntry = std::pow(entry, std::pow(2, depth)); //square f(x)*f(x)
         expectedResult.push_back(expectedEntry);
 
         std::cout << expectedEntry << ' ';

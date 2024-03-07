@@ -208,16 +208,12 @@ bool ParameterGenerationCKKSRNS::ParamsGenCKKSRNS(std::shared_ptr<CryptoParamete
 
     std::cout << "number of Q = " << moduliQ.size() << std::endl;
     double logQ_acc = 0;
-    NativeInteger Q_acc = 1;
     for (size_t i = 0; i < moduliQ.size(); i++) {
         std::cout << "moduliQ[" << i << "]=" << moduliQ[i] << " logq[" << i << "]=" 
 		<< std::log2(moduliQ[i].ConvertToDouble()) << std::endl; 
         logQ_acc += std::log2(moduliQ[i].ConvertToDouble());
-        Q_acc = Q_acc * moduliQ[i];
     }
-    std::cout << "Q = " << Q_acc << std::endl;
     std::cout << "logQ = " <<logQ_acc << std::endl;
-    std::cout << "logQ = " << std::log2(Q_acc) << std::endl;
 
     if (scalTech == FLEXIBLEAUTOEXT) {
         // no need for extra checking as extraModSize is automatically chosen by the library
