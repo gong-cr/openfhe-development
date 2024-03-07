@@ -31,7 +31,7 @@
 
 /*
 
-Example for CKKS bootstrapping with full packing
+Example for CKKS bootstrapping with full packing, modified from simple-ckks-bootstrapping.cpp
 
 */
 
@@ -41,7 +41,7 @@ Example for CKKS bootstrapping with full packing
 
 using namespace lbcrypto;
 
-void SimpleBootstrapExample(uint32_t ringDim, usint dcrtBits, usint firstMod, std::vector<uint32_t> levelBudget);
+void SimpleBootstrapExample(uint32_t ringDim, usint dcrtBits, usint firstMod, std::vector<uint32_t> levelBudget, uint32_t levelsAvailableAfterBootstrap, uint32_t approxModDepth);
 double CalculateApproximationError(const std::vector<std::complex<double>>& result,
                                     const std::vector<std::complex<double>>& expectedResult) {
     if (result.size() != expectedResult.size())
@@ -56,14 +56,28 @@ double CalculateApproximationError(const std::vector<std::complex<double>>& resu
     return std::abs(std::log2(avrg));
 }
 int main(int argc, char* argv[]) {
-    uint32_t ringDim  = 1 << 17;
-    usint dcrtBits    = 58;
+    //SetII
+    std::cout << "--------------------Set II--------------------" << std::endl;
+    uint32_t ringDim  = 1 << 16;
+    usint dcrtBits    = 55;
     usint firstMod    = 60; 
-    std::vector<uint32_t> levelBudget = {4, 3};
-    SimpleBootstrapExample(ringDim, dcrtBits, firstMod, levelBudget);
+    std::vector<uint32_t> levelBudget = {2, 2};
+    uint32_t levelsAvailableAfterBootstrap = 5;
+    uint32_t approxModDepth = 8;
+    SimpleBootstrapExample(ringDim, dcrtBits, firstMod, levelBudget, levelsAvailableAfterBootstrap, approxModDepth);
+    
+    //SetIII
+    std::cout << "--------------------Set III--------------------" << std::endl;
+    ringDim  = 1 << 17;
+    dcrtBits    = 55;
+    firstMod    = 60; 
+    levelBudget = {2, 2};
+    levelsAvailableAfterBootstrap = 14;
+    approxModDepth = 8;
+    SimpleBootstrapExample(ringDim, dcrtBits, firstMod, levelBudget, levelsAvailableAfterBootstrap, approxModDepth);
 }
 
-void SimpleBootstrapExample(uint32_t ringDim, usint dcrtBits, usint firstMod, std::vector<uint32_t> levelBudget) {    
+void SimpleBootstrapExample(uint32_t ringDim, usint dcrtBits, usint firstMod, std::vector<uint32_t> levelBudget, uint32_t levelsAvailableAfterBootstrap, uint32_t approxModDepth) {    
 
     CCParams<CryptoContextCKKSRNS> parameters;
     // A. Specify main parameters
@@ -116,11 +130,12 @@ void SimpleBootstrapExample(uint32_t ringDim, usint dcrtBits, usint firstMod, st
     */
     // std::vector<uint32_t> levelBudget = {4, 3};
 
-    uint32_t levelsAvailableAfterBootstrap = 7;
-    usint depth = levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(levelBudget, secretKeyDist);
-    std::cout << "Level consumption for EvalMod: " <<FHECKKSRNS::GetBootstrapDepth(levelBudget, secretKeyDist) - levelBudget[0] - levelBudget[1]<< std::endl; 
+    // uint32_t levelsAvailableAfterBootstrap = 8;
+    // uint32_t approxModDepth = 5;
+    usint depth = levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(approxModDepth, levelBudget, secretKeyDist);
+    std::cout << "Level consumption for EvalMod: " <<depth - levelsAvailableAfterBootstrap - levelBudget[0] - levelBudget[1]<< std::endl; 
     parameters.SetMultiplicativeDepth(depth);
-    std::cout <<"depth"<<depth<<std::endl;
+    std::cout <<"depth = "<<depth<<std::endl;
     CryptoContext<DCRTPoly> cryptoContext = GenCryptoContext(parameters);
 
     cryptoContext->Enable(PKE);

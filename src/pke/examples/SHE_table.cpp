@@ -38,6 +38,8 @@
 #include "openfhe.h"
 
 using namespace lbcrypto;
+void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod);
+
 // CalculateApproximationError() calculates the precision number (or approximation error).
 // The higher the precision, the less the error.
 double CalculateApproximationError(const std::vector<std::complex<double>>& result,
@@ -54,8 +56,22 @@ double CalculateApproximationError(const std::vector<std::complex<double>>& resu
     return std::abs(std::log2(avrg));
 }
 
+int main(int argc, char* argv[]) {
+    //SetII
+    std::cout << "--------------------Set II--------------------" << std::endl;
+    uint32_t ringDim  = 1 << 16;
+    usint dcrtBits    = 55;
+    usint firstMod    = 60; 
+    SimpleBootstrapExample(ringDim, dcrtBits, firstMod);
 
-int main() {
+    //SetIII
+    std::cout << "--------------------Set III--------------------" << std::endl;
+    ringDim  = 1 << 17;
+    dcrtBits    = 55;
+    firstMod    = 60; 
+    SimpleBootstrapExample(ringDim, dcrtBits, firstMod);
+}
+void SimpleSHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod){
     // Step 1: Setup CryptoContext
 
     // A. Specify main parameters
@@ -70,8 +86,8 @@ int main() {
    parameters.SetSecretKeyDist(secretKeyDist);
 
    parameters.SetSecurityLevel(HEStd_NotSet);
-   parameters.SetRingDim(1 << 15); //COLUMN 1,2,3,4
-    // parameters.SetRingDim(1 << 16); //COLUMN 5,6   
+   parameters.SetRingDim(ringDim); 
+   
     /* A2) Bit-length of scaling factor.
    * CKKS works for real numbers, but these numbers are encoded as integers.
    * For instance, real number m=0.01 is encoded as m'=round(m*D), where D is
@@ -95,8 +111,8 @@ int main() {
    */
    
     ScalingTechnique rescaleTech = FLEXIBLEAUTO;
-    usint scaleModSize               = 50;
-    usint firstMod               = 60; //COLUMN 1,2,3
+    // usint scaleModSize               = 50;
+    // usint firstMod               = 60; //COLUMN 1,2,3
     // usint firstMod               = 61; //COLUMN 4,6
     // usint firstMod               = 67; //COLUMN 5
 
@@ -116,7 +132,7 @@ int main() {
    * PARAMETERS" in  the following reference for more details:
    * http://homomorphicencryption.org/wp-content/uploads/2018/11/HomomorphicEncryptionStandardv1.1.pdf
    */
-    parameters.SetScalingModSize(scaleModSize);
+    parameters.SetScalingModSize(dcrtBits);
     parameters.SetScalingTechnique(rescaleTech);
     parameters.SetFirstModSize(firstMod);
     
