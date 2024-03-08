@@ -100,8 +100,8 @@ int main(int argc, char* argv[]) {
     firstMod    = 40; 
     depth = 7;
     SHEExample(ringDim, dcrtBits, firstMod, depth);
-
 }
+
 void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod, usint depth){
     // Step 1: Setup CryptoContext
 
