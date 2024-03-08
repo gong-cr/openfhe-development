@@ -71,14 +71,14 @@ int main(int argc, char* argv[]) {
     dcrtBits    = 42;
     firstMod    = 44; 
     depth = 9;
-    SHEExample(ringDim, dcrtBits, firstMod, depth);
+    // SHEExample(ringDim, dcrtBits, firstMod, depth);
 
     std::cout << "--------------------COLUMN 3--------------------" << std::endl;
     ringDim  = 1 << 15;
-    dcrtBits    = 50;
-    firstMod    = 60; 
-    depth = 10;
-    // SHEExample(ringDim, dcrtBits, firstMod, depth);
+    dcrtBits    = 39;
+    firstMod    = 40; 
+    depth = 8;
+    SHEExample(ringDim, dcrtBits, firstMod, depth);
 
     std::cout << "--------------------COLUMN 4--------------------" << std::endl;
     ringDim  = 1 << 14;
@@ -92,14 +92,14 @@ int main(int argc, char* argv[]) {
     dcrtBits    = 42;
     firstMod    = 44; 
     depth = 8;
-    SHEExample(ringDim, dcrtBits, firstMod, depth);
+    // SHEExample(ringDim, dcrtBits, firstMod, depth);
 
     std::cout << "--------------------COLUMN 6--------------------" << std::endl;
     ringDim  = 1 << 15;
-    dcrtBits    = 50;
-    firstMod    = 60; 
-    depth = 10;
-    // SHEExample(ringDim, dcrtBits, firstMod, depth);
+    dcrtBits    = 39;
+    firstMod    = 40; 
+    depth = 7;
+    SHEExample(ringDim, dcrtBits, firstMod, depth);
 
 }
 void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod, usint depth){

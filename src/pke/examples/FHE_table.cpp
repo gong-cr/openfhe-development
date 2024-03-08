@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     usint dcrtBits    = 55;
     usint firstMod    = 60; 
     std::vector<uint32_t> levelBudget = {2, 2};
-    uint32_t levelsAvailableAfterBootstrap = 4;
+    uint32_t levelsAvailableAfterBootstrap = 5;
     SimpleBootstrapExample(ringDim, dcrtBits, firstMod, levelBudget, levelsAvailableAfterBootstrap);
 
     //SetIII
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     dcrtBits    = 55;
     firstMod    = 60; 
     levelBudget = {2, 2};
-    levelsAvailableAfterBootstrap = 13;
+    levelsAvailableAfterBootstrap = 14;
     SimpleBootstrapExample(ringDim, dcrtBits, firstMod, levelBudget, levelsAvailableAfterBootstrap);
 }
 
@@ -127,7 +127,7 @@ void SimpleBootstrapExample(uint32_t ringDim, usint dcrtBits, usint firstMod, st
     * depth. We recommend using the input parameters below to get started.
     */
 
-    usint depth = levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(levelBudget, secretKeyDist);
+    usint depth = levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(8, levelBudget, secretKeyDist);
     std::cout << "Level consumption for SlotsToCoeffs: " <<levelBudget[0]<< std::endl; 
     std::cout << "Level consumption for EvalMod: " <<depth - levelsAvailableAfterBootstrap - levelBudget[0] - levelBudget[1]<< std::endl; 
     std::cout << "Level consumption for CoeffsToSlots: " <<levelBudget[1]<< std::endl; 
