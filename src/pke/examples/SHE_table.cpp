@@ -64,14 +64,14 @@ int main(int argc, char* argv[]) {
     usint dcrtBits    = 38;
     usint firstMod    = 40; 
     usint depth = 7;
-    SHEExample(ringDim, dcrtBits, firstMod, depth);
+    // SHEExample(ringDim, dcrtBits, firstMod, depth);
 
     std::cout << "--------------------COLUMN 2--------------------" << std::endl;
     ringDim  = 1 << 15;
-    dcrtBits    = 50;
-    firstMod    = 60; 
-    depth = 10;
-    // SHEExample(ringDim, dcrtBits, firstMod, depth);
+    dcrtBits    = 42;
+    firstMod    = 44; 
+    depth = 9;
+    SHEExample(ringDim, dcrtBits, firstMod, depth);
 
     std::cout << "--------------------COLUMN 3--------------------" << std::endl;
     ringDim  = 1 << 15;
@@ -85,14 +85,14 @@ int main(int argc, char* argv[]) {
     dcrtBits    = 38;
     firstMod    = 40; 
     depth = 6;
-    SHEExample(ringDim, dcrtBits, firstMod, depth);
+    // SHEExample(ringDim, dcrtBits, firstMod, depth);
 
     std::cout << "--------------------COLUMN 5--------------------" << std::endl;
     ringDim  = 1 << 15;
-    dcrtBits    = 50;
-    firstMod    = 60; 
-    depth = 10;
-    // SHEExample(ringDim, dcrtBits, firstMod, depth);
+    dcrtBits    = 42;
+    firstMod    = 44; 
+    depth = 8;
+    SHEExample(ringDim, dcrtBits, firstMod, depth);
 
     std::cout << "--------------------COLUMN 6--------------------" << std::endl;
     ringDim  = 1 << 15;
@@ -256,7 +256,7 @@ void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod, usint depth){
       // std::cout<<"co"<<c0;
       c1 = cc->EvalMult(c1, c0);//mul: f(x)*x
     }
-    
+    std::cout << "# of multiplications  = " << depth << std::endl;
     std::vector<double> expectedResult;
     // std::cout << "cleartext results = ";
     for (double entry : x1) {
@@ -269,8 +269,7 @@ void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod, usint depth){
     
     std::cout << std::endl;
     Plaintext ptxt_expResult = cc->MakeCKKSPackedPlaintext(expectedResult);
-    std::cout<<"c1 level=" << c1->GetLevel() << std::endl;
-   
+      
 
     // Step 5: Decryption and output
     Plaintext result;
