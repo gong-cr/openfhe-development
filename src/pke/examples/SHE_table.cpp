@@ -58,20 +58,49 @@ double CalculateApproximationError(const std::vector<std::complex<double>>& resu
 
 int main(int argc, char* argv[]) {
     //SetII
-    std::cout << "--------------------Set II--------------------" << std::endl;
-    uint32_t ringDim  = 1 << 15;
-    usint dcrtBits    = 55;
-    usint firstMod    = 60; 
-    usint depth = 3;
+    std::cout << "====================RNS-CKKS without Bootstrapping====================" << std::endl;
+    std::cout << "--------------------COLUMN 1--------------------" << std::endl;
+    uint32_t ringDim  = 1 << 14;
+    usint dcrtBits    = 38;
+    usint firstMod    = 40; 
+    usint depth = 7;
     SHEExample(ringDim, dcrtBits, firstMod, depth);
 
-    //SetIII
-    std::cout << "--------------------Set III--------------------" << std::endl;
-    ringDim  = 1 << 17;
-    dcrtBits    = 55;
+    std::cout << "--------------------COLUMN 2--------------------" << std::endl;
+    ringDim  = 1 << 15;
+    dcrtBits    = 50;
     firstMod    = 60; 
-    depth = 3;
-    // SimpleBootstrapExample(ringDim, dcrtBits, firstMod, depth);
+    depth = 10;
+    // SHEExample(ringDim, dcrtBits, firstMod, depth);
+
+    std::cout << "--------------------COLUMN 3--------------------" << std::endl;
+    ringDim  = 1 << 15;
+    dcrtBits    = 50;
+    firstMod    = 60; 
+    depth = 10;
+    // SHEExample(ringDim, dcrtBits, firstMod, depth);
+
+    std::cout << "--------------------COLUMN 4--------------------" << std::endl;
+    ringDim  = 1 << 14;
+    dcrtBits    = 38;
+    firstMod    = 40; 
+    depth = 6;
+    SHEExample(ringDim, dcrtBits, firstMod, depth);
+
+    std::cout << "--------------------COLUMN 5--------------------" << std::endl;
+    ringDim  = 1 << 15;
+    dcrtBits    = 50;
+    firstMod    = 60; 
+    depth = 10;
+    // SHEExample(ringDim, dcrtBits, firstMod, depth);
+
+    std::cout << "--------------------COLUMN 6--------------------" << std::endl;
+    ringDim  = 1 << 15;
+    dcrtBits    = 50;
+    firstMod    = 60; 
+    depth = 10;
+    // SHEExample(ringDim, dcrtBits, firstMod, depth);
+
 }
 void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod, usint depth){
     // Step 1: Setup CryptoContext
@@ -229,23 +258,19 @@ void SHEExample(uint32_t ringDim, usint dcrtBits, usint firstMod, usint depth){
     }
     
     std::vector<double> expectedResult;
-    std::cout << "cleartext results = ";
+    // std::cout << "cleartext results = ";
     for (double entry : x1) {
         double expectedEntry = std::pow(entry, depth+1);//mul: f(x)*x
         // double expectedEntry = std::pow(entry, std::pow(2, depth)); //square f(x)*f(x)
         expectedResult.push_back(expectedEntry);
 
-        std::cout << expectedEntry << ' ';
+        // std::cout << expectedEntry << ' ';
     }
     
     std::cout << std::endl;
     Plaintext ptxt_expResult = cc->MakeCKKSPackedPlaintext(expectedResult);
-    // std::cout<<"c1 level=" << c1->GetLevel() << std::endl;
-    // auto cMul = cc->EvalMult(c1, c1);
-    // std::cout<<"cMul level=" << cMul->GetLevel() << std::endl;
-    // auto cMul2 = cc->EvalMult(cMul, cMul);
-    // std::cout<<"cMul2 level=" << cMul2->GetLevel() << std::endl;
-    
+    std::cout<<"c1 level=" << c1->GetLevel() << std::endl;
+   
 
     // Step 5: Decryption and output
     Plaintext result;

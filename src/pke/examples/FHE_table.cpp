@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     usint dcrtBits    = 55;
     usint firstMod    = 60; 
     std::vector<uint32_t> levelBudget = {2, 2};
-    uint32_t levelsAvailableAfterBootstrap = 5;
+    uint32_t levelsAvailableAfterBootstrap = 4;
     SimpleBootstrapExample(ringDim, dcrtBits, firstMod, levelBudget, levelsAvailableAfterBootstrap);
 
     //SetIII
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     dcrtBits    = 55;
     firstMod    = 60; 
     levelBudget = {2, 2};
-    levelsAvailableAfterBootstrap = 14;
+    levelsAvailableAfterBootstrap = 13;
     SimpleBootstrapExample(ringDim, dcrtBits, firstMod, levelBudget, levelsAvailableAfterBootstrap);
 }
 
