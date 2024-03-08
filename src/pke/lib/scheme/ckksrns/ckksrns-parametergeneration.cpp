@@ -77,8 +77,6 @@ bool ParameterGenerationCKKSRNS::ParamsGenCKKSRNS(std::shared_ptr<CryptoParamete
     uint32_t n             = cyclOrder / 2;
     uint32_t qBound        = firstModSize + (numPrimes - 1) * scalingModSize + extraModSize;
     // Estimate ciphertext modulus Q bound (in case of GHS/HYBRID P*Q)
-    std::cout << "qBound = " << qBound << std::endl;
-    std::cout << "auxBits = " << auxBits << std::endl;
     if (ksTech == HYBRID) {
         qBound += ceil(ceil(static_cast<double>(qBound) / numPartQ) / auxBits) * auxBits;
     }
